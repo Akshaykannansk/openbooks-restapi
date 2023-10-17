@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import  Response
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 from rest_framework.parsers import JSONParser
 from .utils import get_tokens_for_user
 from .serializers import RegistrationSerializer,userserializer
@@ -46,7 +47,9 @@ class userlist(APIView):
         users = User.objects.values('id','username','first_name','last_name','email')
         serializer = userserializer(users,many=True)
         return JsonResponse(serializer.data, safe=False)
-
+class userListview(ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = userserializer
 class userdetail(APIView):
     def get(self,request,pk ):
         try:
