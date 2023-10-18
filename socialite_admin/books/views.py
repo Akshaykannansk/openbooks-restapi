@@ -11,6 +11,9 @@ from rest_framework import filters
 class Bookview(ListAPIView):
     queryset = Books.objects.all()
     serializer_class = Bookserializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['$title',]
+
 
 class AuthorView(ListAPIView):
     queryset = Author.objects.all()
@@ -20,33 +23,31 @@ class AuthorView(ListAPIView):
 
 
 class BookDetailsView(APIView):
-    # def get_object(self, name):
-    #     print ('nameeeeeeeee',name)
-    #     try:
-    #         return Books.objects.get(title=name)
-    #     except Books.DoesNotExist:
-    #         raise Http404
-
-    def get(self, request, format=None):
-        name = request.GET.get("name", None)
+    def get_object(self, isbn):
+        
         try:
-            if name:
-                print('nameeeeeeeeeeeeeeee', name)
-                books = Books.objects.get(title=name)
-                serializer = Bookserializer(books)
-                return Response(serializer.data)
+            if len(isbn) == 13:
+                return Books.objects.get(isbn13=isbn)
+            if len(isbn) == 10:
+                return Books.objects.get(isbn=isbn)
         except Books.DoesNotExist:
-             raise Http404
+            raise Http404
 
-    # def put(self, request, format=None):
-    #     Books = self.get_object(name)
-    #     serializer = Bookserializer(Books, data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request,isbn, format=None):
+        books = self.get_object(isbn)
+        serializer = Bookserializer(books)
+        return Response(serializer.data)
+    
 
-    # def delete(self, request, format=None):
-    #     Books = self.get_object(name)
-    #     Books.delete()
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
+    def put(self, request, isbn, format=None):
+        Books = self.get_object(isbn)
+        serializer = Bookserializer(Books, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, isbn, format=None):
+        Books = self.get_object(isbn)
+        Books.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
