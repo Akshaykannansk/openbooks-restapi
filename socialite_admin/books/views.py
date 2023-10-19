@@ -1,14 +1,16 @@
 from django.shortcuts import render
 from .models import Author,Books
 from .serializers import Authorserializer, Bookserializer
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView
 from rest_framework.views import APIView
 from django.http import Http404
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import filters
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 # Create your views here.
-class Bookview(ListAPIView):
+class Bookview(ListCreateAPIView):
+    permission_classes = (IsAuthenticated, ) 
     queryset = Books.objects.all()
     serializer_class = Bookserializer
     filter_backends = [filters.SearchFilter]
